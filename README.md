@@ -15,5 +15,5 @@
 ## Simons
 
 <p align="center">
-  <img width="100%" height="auto" src="figs/simons.png">
+  <img width="100%" height="auto" src="figs/simon.png">
 </p>
