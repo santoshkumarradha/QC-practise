@@ -1,6 +1,7 @@
 from qiskit import IBMQ, BasicAer
 from qiskit import QuantumCircuit, ClassicalRegister, QuantumRegister, execute
 import matplotlib.pyplot as plt
+from math import pi
 
 
 def deutsch_jozsa(n=3, u="balanced"):
@@ -154,3 +155,48 @@ def simons(b='110'):
         print('{} b-xor {} = {} ({:.1f}%)'.format(b,
                                                   z, bitxor(b, z), answer[z]*100/shots))
     plt.savefig("figs/simon.png", dpi=200)
+
+
+def qft(b="110", plot=0):
+    """Quantum forrier transform without swaps
+
+    Args:
+        b (str): Bit to QFT
+        plot (int, optional): Plot or not ?  Defaults to 0.
+
+    Returns:
+        [type]: [description]
+    """
+    def qft_circ(b, plot):
+        n = len(b)
+        b = b[::-1]
+        ins = QuantumRegister(n)
+        c = ClassicalRegister(n)
+
+        circ = QuantumCircuit(ins, c)
+
+        for j, i in enumerate(b):
+            if i == '1':
+                circ.x(ins[j])
+        circ.barrier()
+
+        for i in range(n)[::-1]:
+            circ.h(ins[i])
+            for k in range(0, i)[::-1]:
+                circ.cu1(pi/2**(k+1), ins[i], ins[k])
+        circ.barrier()
+        circ.measure(ins, c)
+        if plot:
+            fig, ax = plt.subplots()
+            circ.draw('mpl', ax=ax)
+            ax.set_title("QFT")
+            plt.savefig("figs/qft.png", dpi=200)
+            plt.show()
+        return circ
+    circ = qft_circ(b, plot)
+    backend = BasicAer.get_backend('qasm_simulator')
+    shots = 1024
+    results = execute(circ, backend=backend, shots=shots).result()
+    answer = results.get_counts()
+    for i in answer:
+        print(f"|{i}> - {answer[i]}")
